@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/mfroeh/lol-metrix/internal/lolapi"
 )
@@ -34,12 +36,33 @@ func main() {
 		lolapi: lolapi.NewPlatform(cfg.riotAPIKey, "europe"),
 	}
 
-	account, err := app.lolapi.GetAccount("Dr Orange", "Caps")
+	account, err := app.lolapi.GetAccountByName("Dr Orange", "Caps")
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	fmt.Printf("%+v\n", account)
+
+	startTime := time.Now().AddDate(0, 0, -2)
+	matches, err := app.lolapi.GetPlayerMatches(account.Puuid, lolapi.MatchesRequestOptions{
+		StartTime: &startTime,
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", matches)
+
+	match, err := app.lolapi.GetMatch(matches[0])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", match)
+
+	json, err := json.Marshal(match)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%d\n", len(json))
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.port),

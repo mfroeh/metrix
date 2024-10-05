@@ -22,21 +22,21 @@ func readJSON(r io.Reader, dst any) error {
 
 		switch {
 		case errors.As(err, &syntaxError):
-			return fmt.Errorf("body contains badly-formed JSON (at character %d)", syntaxError.Offset)
+			return fmt.Errorf("input contains badly-formed JSON (at character %d)", syntaxError.Offset)
 		case errors.Is(err, io.ErrUnexpectedEOF):
-			return errors.New("body contains badly-formed JSON")
+			return errors.New("input contains badly-formed JSON")
 		case errors.As(err, &unmarshalTypeError):
 			if unmarshalTypeError.Field != "" {
-				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
+				return fmt.Errorf("body contains incorrect JSON type for field %q (decoding into %T)", unmarshalTypeError.Field, dst)
 			}
 			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
 		case errors.Is(err, io.EOF):
-			return errors.New("body must not be empty")
+			return errors.New("input must not be empty")
 		case strings.HasPrefix(err.Error(), "json: unknown field "):
 			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
-			return fmt.Errorf("body contains unknown key %s", fieldName)
+			return fmt.Errorf("input contains unknown key %s (decoding into %T)", fieldName, dst)
 		case errors.As(err, &maxBytesError):
-			return fmt.Errorf("body must be at most %d bytes", maxBytesError.Limit)
+			return fmt.Errorf("input must be at most %d bytes", maxBytesError.Limit)
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)
 
