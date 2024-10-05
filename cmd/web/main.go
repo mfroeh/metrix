@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/mfroeh/lol-metrix/internal/lolapi"
 )
 
 type config struct {
@@ -15,6 +17,7 @@ type config struct {
 
 type application struct {
 	config config
+	lolapi *lolapi.Platform
 }
 
 func main() {
@@ -28,7 +31,15 @@ func main() {
 
 	app := &application{
 		config: cfg,
+		lolapi: lolapi.NewPlatform(cfg.riotAPIKey, "europe"),
 	}
+
+	account, err := app.lolapi.GetAccount("Dr Orange", "Caps")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%+v\n", account)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.port),
@@ -37,6 +48,6 @@ func main() {
 
 	log.Printf("Starting server on %s", srv.Addr)
 
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	log.Fatal(err)
 }
