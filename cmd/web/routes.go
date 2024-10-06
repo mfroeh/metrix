@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mfroeh/lol-metrix/frontend"
+	"github.com/mfroeh/metrix/frontend"
 )
 
 func (app *application) routes() http.Handler {

@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/mfroeh/lol-metrix/internal/data"
-	"github.com/mfroeh/lol-metrix/internal/lolapi"
+	"github.com/mfroeh/metrix/internal/data"
+	"github.com/mfroeh/metrix/internal/lolapi"
 
 	_ "github.com/lib/pq"
 )

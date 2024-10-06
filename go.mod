@@ -1,4 +1,4 @@
-module github.com/mfroeh/lol-metrix
+module github.com/mfroeh/metrix
 
 go 1.22.1
 

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mfroeh/lol-metrix/internal/helpers"
+	"github.com/mfroeh/metrix/internal/helpers"
 )
 
 type Match struct {

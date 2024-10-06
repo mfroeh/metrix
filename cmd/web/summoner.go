@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mfroeh/lol-metrix/internal/data"
-	"github.com/mfroeh/lol-metrix/internal/helpers"
-	"github.com/mfroeh/lol-metrix/internal/lolapi"
-	"github.com/mfroeh/lol-metrix/internal/validator"
+	"github.com/mfroeh/metrix/internal/data"
+	"github.com/mfroeh/metrix/internal/helpers"
+	"github.com/mfroeh/metrix/internal/lolapi"
+	"github.com/mfroeh/metrix/internal/validator"
 )
 
 func (app *application) createOrGetSummoner(w http.ResponseWriter, r *http.Request) {
