@@ -5,6 +5,8 @@ import About from "./pages/About";
 import Home from "./pages/Home";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
+import Summoner from "./pages/Summoner";
+import Navbar from "./Navbar";
 
 const theme = createTheme({
   palette: {
@@ -59,9 +61,11 @@ root.render(
   <ThemeProvider theme={theme}>
     <CssBaseline />
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route index element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/summoner/:summonerName/:tag" element={<Summoner />} />
       </Routes>
     </BrowserRouter>
   </ThemeProvider>

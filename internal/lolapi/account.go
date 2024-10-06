@@ -3,6 +3,8 @@ package lolapi
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/mfroeh/lol-metrix/internal/helpers"
 )
 
 type RiotAccount struct {
@@ -11,8 +13,8 @@ type RiotAccount struct {
 	TagLine  string `json:"tagLine"`
 }
 
-func (p *Platform) GetAccountByName(gameName, tagLine string) (*RiotAccount, error) {
-	url := p.makeUrl(fmt.Sprintf("/riot/account/v1/accounts/by-riot-id/%s/%s", gameName, tagLine))
+func (p *Client) GetAccountByName(gameName, tagLine string) (*RiotAccount, error) {
+	url := p.makeUrlPlatform(fmt.Sprintf("/riot/account/v1/accounts/by-riot-id/%s/%s", gameName, tagLine))
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -26,20 +28,20 @@ func (p *Platform) GetAccountByName(gameName, tagLine string) (*RiotAccount, err
 	switch resp.StatusCode {
 	case http.StatusOK:
 		var account RiotAccount
-		err = readJSON(resp.Body, &account)
+		err = helpers.ReadJSON(resp.Body, &account)
 		if err != nil {
 			return nil, err
 		}
 		return &account, nil
 	case http.StatusNotFound:
-		return nil, fmt.Errorf("lolapi: account not found for %s#%s", gameName, tagLine)
+		return nil, ErrResourceNotFound
 	default:
 		return nil, fmt.Errorf("lolapi: unknown response status code: %d", resp.StatusCode)
 	}
 }
 
-func (p *Platform) GetAccountByPuuid(puuid string) (*RiotAccount, error) {
-	url := p.makeUrl(fmt.Sprintf("/riot/account/v1/accounts/by-puuid/%s", puuid))
+func (p *Client) GetAccountByPuuid(puuid string) (*RiotAccount, error) {
+	url := p.makeUrlPlatform(fmt.Sprintf("/riot/account/v1/accounts/by-puuid/%s", puuid))
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -53,13 +55,11 @@ func (p *Platform) GetAccountByPuuid(puuid string) (*RiotAccount, error) {
 	switch resp.StatusCode {
 	case http.StatusOK:
 		var account RiotAccount
-		err = readJSON(resp.Body, &account)
+		err = helpers.ReadJSON(resp.Body, &account)
 		if err != nil {
 			return nil, err
 		}
 		return &account, nil
-	case http.StatusNotFound:
-		return nil, fmt.Errorf("lolapi: account not found for puuid %s", puuid)
 	default:
 		return nil, fmt.Errorf("lolapi: unknown response status code: %d", resp.StatusCode)
 	}

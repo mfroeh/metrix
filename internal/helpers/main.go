@@ -1,4 +1,4 @@
-package lolapi
+package helpers
 
 import (
 	"encoding/json"
@@ -9,7 +9,9 @@ import (
 	"strings"
 )
 
-func readJSON(r io.Reader, dst any) error {
+type envelope map[string]any
+
+func ReadJSON(r io.Reader, dst any) error {
 	dec := json.NewDecoder(r)
 	dec.DisallowUnknownFields()
 

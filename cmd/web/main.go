@@ -1,25 +1,32 @@
 package main
 
 import (
-	"encoding/json"
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
-	"time"
+	"os"
 
+	"github.com/mfroeh/lol-metrix/internal/data"
 	"github.com/mfroeh/lol-metrix/internal/lolapi"
+
+	_ "github.com/lib/pq"
 )
 
 type config struct {
 	port       int
 	env        string
 	riotAPIKey string
+	dsn        string
 }
 
 type application struct {
 	config config
-	lolapi *lolapi.Platform
+	lolapi *lolapi.Client
+	models data.Models
+	logger *slog.Logger
 }
 
 func main() {
@@ -27,50 +34,48 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.riotAPIKey, "riot-api-key", "", "Riot API key")
+	flag.StringVar(&cfg.riotAPIKey, "riot-api-key", os.Getenv("RGAPI"), "Riot API key")
+	flag.StringVar(&cfg.dsn, "dsn", os.Getenv("METRIX_DB_DSN"), "PostgreSQL DSN")
 
 	flag.Parse()
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+
+	db, err := openDB(&cfg)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	defer db.Close()
+
 	app := &application{
 		config: cfg,
-		lolapi: lolapi.NewPlatform(cfg.riotAPIKey, "europe"),
+		lolapi: lolapi.NewClient(cfg.riotAPIKey, "europe", "EUW1"),
+		models: data.NewModels(db),
+		logger: logger,
 	}
-
-	account, err := app.lolapi.GetAccountByName("Dr Orange", "Caps")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%+v\n", account)
-
-	startTime := time.Now().AddDate(0, 0, -2)
-	matches, err := app.lolapi.GetPlayerMatches(account.Puuid, lolapi.MatchesRequestOptions{
-		StartTime: &startTime,
-	})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%+v\n", matches)
-
-	match, err := app.lolapi.GetMatch(matches[0])
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%+v\n", match)
-
-	json, err := json.Marshal(match)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%d\n", len(json))
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.port),
-		Handler: app.routes(),
+		Addr:     fmt.Sprintf(":%d", cfg.port),
+		Handler:  app.routes(),
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
 	log.Printf("Starting server on %s", srv.Addr)
 
 	err = srv.ListenAndServe()
 	log.Fatal(err)
+}
+
+func openDB(cfg *config) (*sql.DB, error) {
+	db, err := sql.Open("postgres", cfg.dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }

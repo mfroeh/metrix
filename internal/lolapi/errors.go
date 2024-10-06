@@ -1,6 +1,9 @@
 package lolapi
 
-import "errors"
+import (
+	"errors"
+	"net/http"
+)
 
 // import (
 // 	"errors"
@@ -29,5 +32,17 @@ import "errors"
 // }
 
 var (
-	ErrTooManyRequests = errors.New("lolapi: too many requests")
+	ErrTooManyRequests   = errors.New("lolapi: too many requests")
+	ErrInvalidRouteOrKey = errors.New("lolapi: invalid route or api key")
+	ErrNotAuthorized     = errors.New("lolapi: not authorized")
+	ErrResourceNotFound  = errors.New("lolapi: resource not found")
+	ErrBadRequest        = errors.New("lolapi: bad request")
 )
+
+var ErrorForStatusCode = map[int]error{
+	http.StatusTooManyRequests: ErrTooManyRequests,
+	http.StatusUnauthorized:    ErrNotAuthorized,
+	http.StatusForbidden:       ErrInvalidRouteOrKey,
+	http.StatusNotFound:        ErrResourceNotFound,
+	http.StatusBadRequest:      ErrBadRequest,
+}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/mfroeh/lol-metrix/internal/helpers"
 )
 
 type Match struct {
@@ -247,8 +249,8 @@ type MatchesRequestOptions struct {
 	Count     *int
 }
 
-func (p *Platform) GetPlayerMatches(puuid string, options MatchesRequestOptions) ([]string, error) {
-	url := p.makeUrl(fmt.Sprintf("/lol/match/v5/matches/by-puuid/%s/ids", puuid))
+func (p *Client) GetPlayerMatches(puuid string, options MatchesRequestOptions) ([]string, error) {
+	url := p.makeUrlRegion(fmt.Sprintf("/lol/match/v5/matches/by-puuid/%s/ids", puuid))
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -284,7 +286,7 @@ func (p *Platform) GetPlayerMatches(puuid string, options MatchesRequestOptions)
 	switch resp.StatusCode {
 	case http.StatusOK:
 		var matches []string
-		err = readJSON(resp.Body, &matches)
+		err = helpers.ReadJSON(resp.Body, &matches)
 		if err != nil {
 			return nil, err
 		}
@@ -294,8 +296,8 @@ func (p *Platform) GetPlayerMatches(puuid string, options MatchesRequestOptions)
 	}
 }
 
-func (p *Platform) GetMatch(matchId string) (*Match, error) {
-	url := p.makeUrl(fmt.Sprintf("/lol/match/v5/matches/%s", matchId))
+func (p *Client) GetMatch(matchId string) (*Match, error) {
+	url := p.makeUrlRegion(fmt.Sprintf("/lol/match/v5/matches/%s", matchId))
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -309,7 +311,7 @@ func (p *Platform) GetMatch(matchId string) (*Match, error) {
 	switch resp.StatusCode {
 	case http.StatusOK:
 		var match Match
-		err = readJSON(resp.Body, &match)
+		err = helpers.ReadJSON(resp.Body, &match)
 		if err != nil {
 			return nil, err
 		}
