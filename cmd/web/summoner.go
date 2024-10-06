@@ -38,13 +38,13 @@ func (app *application) createOrGetSummoner(w http.ResponseWriter, r *http.Reque
 	// try to get summoner from db, otherwise kick off go routine to get from Riot API
 	summoner, err := app.models.Summoners.GetByName(nameAndTag.Name, nameAndTag.Tag)
 	if nil == err {
-		app.writeJSON(w, http.StatusOK, envelope{"summoner": summoner}, nil)
-		return
+		// app.writeJSON(w, http.StatusOK, envelope{"summoner": summoner}, nil)
+		// return
 	}
 
 	if !errors.Is(err, data.ErrRecordNotFound) {
-		app.serverErrorResponse(w, r, err)
-		return
+		// app.serverErrorResponse(w, r, err)
+		// return
 	}
 
 	fmt.Println("summoner not found, getting from Riot API")
@@ -73,6 +73,38 @@ func (app *application) createOrGetSummoner(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	fmt.Println("getting league from Riot API")
+	apiLeagues, err := app.lolapi.GetLeagueBySummonerID(apiSummoner.Id)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	leagues := make([]*data.League, 0)
+	for _, league := range apiLeagues {
+		leagues = append(leagues, &data.League{
+			Puuid:        apiSummoner.Puuid,
+			SummonerId:   apiSummoner.Id,
+			QueueType:    league.QueueType,
+			Tier:         league.Tier,
+			Rank:         helpers.Rntoi(league.Rank),
+			Wins:         league.Wins,
+			Losses:       league.Losses,
+			HotStreak:    league.HotStreak,
+			Veteran:      league.Veteran,
+			FreshBlood:   league.FreshBlood,
+			Inactive:     league.Inactive,
+			LeaguePoints: league.LeaguePoints,
+			RatedRating:  league.RatedRating,
+			MiniSeries: data.MiniSeries{
+				Wins:     league.MiniSeries.Wins,
+				Losses:   league.MiniSeries.Losses,
+				Target:   league.MiniSeries.Target,
+				Progress: league.MiniSeries.Progress,
+			},
+		})
+	}
+
 	summoner = &data.Summoner{
 		Name:          account.GameName,
 		Tag:           account.TagLine,
@@ -82,6 +114,7 @@ func (app *application) createOrGetSummoner(w http.ResponseWriter, r *http.Reque
 		RevisionDate:  time.UnixMilli(apiSummoner.RevisionDate),
 		SummonerLevel: apiSummoner.SummonerLevel,
 		SummonerId:    apiSummoner.Id,
+		Leagues:       leagues,
 	}
 
 	fmt.Println("inserting summoner into db")

@@ -17,6 +17,7 @@ type LeagueEntry struct {
 	Tier         string     `json:"tier"`
 	Rank         string     `json:"rank"`
 	LeaguePoints int        `json:"leaguePoints"`
+	RatedRating  int        `json:"ratedRating"`
 	Wins         int        `json:"wins"`
 	Losses       int        `json:"losses"`
 	HotStreak    bool       `json:"hotStreak"`

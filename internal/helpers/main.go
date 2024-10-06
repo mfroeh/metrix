@@ -55,3 +55,34 @@ func ReadJSON(r io.Reader, dst any) error {
 
 	return nil
 }
+
+func Rntoi(romanNumeral string) int {
+	romanToInt := map[string]int{
+		"I": 1,
+		"V": 5,
+		"X": 10,
+		"L": 50,
+		"C": 100,
+		"D": 500,
+		"M": 1000,
+	}
+
+	total := 0
+	prev := 0
+
+	for i := len(romanNumeral) - 1; i >= 0; i-- {
+		char := string(romanNumeral[i])
+		value := romanToInt[char]
+
+		if value < prev {
+			// IV, IX, XL, XC, CD, CM
+			total -= value
+		} else {
+			total += value
+		}
+
+		prev = value
+	}
+
+	return total
+}
