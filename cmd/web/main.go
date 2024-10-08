@@ -61,8 +61,21 @@ func main() {
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
-	log.Printf("Starting server on %s", srv.Addr)
+	apiMatch, err := app.lolapi.GetMatch("EUW1_7144542211")
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	logger.Info(fmt.Sprintf("%+v", apiMatch))
 
+	match, err := app.models.Matches.Insert(data.MatchFromApiMatch(apiMatch))
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	logger.Info(fmt.Sprintf("%+v", match))
+
+	log.Printf("Starting server on %s", srv.Addr)
 	err = srv.ListenAndServe()
 	log.Fatal(err)
 }
